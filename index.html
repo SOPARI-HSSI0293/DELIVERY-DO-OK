@@ -25,6 +25,13 @@
         #reader video {
             object-fit: cover !important;
         }
+        /* Memaksa area viewfinder html5-qrcode berada di tengah */
+        #reader__scan_region {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
         .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); border: 1px solid rgba(51, 65, 85, 0.2); }
         .hidden { display: none !important; }
         .scan-active { box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); border-color: #10b981 !important; }
@@ -49,7 +56,7 @@
         </div>
     </header>
 
-    <!-- Area Scanner (Area kamera dipersempit agar lebih simpel) -->
+    <!-- Area Scanner -->
     <div class="relative mb-4">
         <div id="reader" class="aspect-[16/10]"></div>
         
@@ -62,14 +69,13 @@
             <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Kamera Standby</p>
         </div>
         
-        <!-- Tombol diletakkan sedikit naik agar tidak menabrak list -->
-        <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-3/5">
+        <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-3/5 z-20">
             <button id="btn-toggle" onclick="toggleScanner()" class="w-full py-2.5 bg-emerald-600 text-white rounded-xl font-black text-[11px] shadow-xl border-b-4 border-emerald-800 active:scale-95 transition-transform uppercase">MULAI SCAN</button>
         </div>
     </div>
 
-    <!-- List Hasil Scan (Scrollable) -->
-    <div class="flex-1 mt-4 overflow-hidden flex flex-col min-h-0">
+    <!-- List Hasil Scan (Tinggi Diperkecil Setengah) -->
+    <div class="flex-none h-24 mt-4 overflow-hidden flex flex-col min-h-0">
         <p class="text-[9px] text-slate-500 font-black uppercase mb-2 px-1 tracking-widest flex justify-between">
             <span>Data Scan (NO LR)</span>
             <span class="opacity-50 italic">Terbaru di atas</span>
@@ -80,6 +86,9 @@
         </div>
     </div>
 
+    <!-- Spacer untuk mendorong footer ke bawah -->
+    <div class="flex-1"></div>
+
     <!-- Footer & Aksi -->
     <footer class="mt-4 space-y-3">
         <div id="log-msg" class="text-center text-[9px] font-bold uppercase h-3"></div>
@@ -88,8 +97,10 @@
             KIRIM DATA
         </button>
 
-        <div class="text-center opacity-40">
-            <p class="text-[7px] font-bold text-slate-500 uppercase tracking-tighter">SOPARI HSSI0293 • PT. HANWA STEEL SERVICE INDONESIA © 2026</p>
+        <div class="text-center">
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Monitoring Delivery</p>
+            <p class="text-[8px] text-slate-500 font-bold mt-1">Elaborated by SOPARI HSSI0293</p>
+            <p class="text-[8px] text-slate-600 mt-0.5 font-bold">PT. HANWA STEEL SERVICE INDONESIA © 2026</p>
         </div>
     </footer>
 
@@ -119,7 +130,7 @@
                 off.classList.add('hidden');
                 document.getElementById('cam-error').classList.add('hidden');
                 
-                // qrbox diperkecil agar lebih fokus (simpel)
+                // qrbox diletakkan di tengah dengan penyesuaian CSS di atas
                 html5Qr.start(
                     { facingMode: "environment" },
                     { 
@@ -168,8 +179,8 @@
             if(empty) empty.remove();
 
             list.innerHTML = scans.map(s => `
-                <div class="flex items-center justify-between bg-slate-800/40 p-2.5 rounded-xl border-l-4 border-emerald-500 animate-in fade-in slide-in-from-left-2 duration-300">
-                    <span class="text-[12px] font-black text-slate-100 tracking-tight">${s.no}</span>
+                <div class="flex items-center justify-between bg-slate-800/40 p-2 rounded-xl border-l-4 border-emerald-500 animate-in fade-in slide-in-from-left-2 duration-300">
+                    <span class="text-[11px] font-black text-slate-100 tracking-tight">${s.no}</span>
                     <span class="text-[9px] font-bold text-slate-500 bg-slate-900/50 px-2 py-0.5 rounded-md">${s.tm}</span>
                 </div>
             `).join('');
