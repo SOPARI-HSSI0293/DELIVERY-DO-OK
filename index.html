@@ -2,117 +2,88 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DO OK Scanner - Updated</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DO OK Scanner - Slim</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; }
-        #reader { width: 100%; border-radius: 2rem; overflow: hidden; background: #000; border: 2px solid #1e293b; }
-        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(51, 65, 85, 0.3); }
-        .hidden { display: none !important; }
-        .scan-active { box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); border-color: #10b981 !important; }
-        
-        /* Animasi fade in untuk teks footer */
-        .footer-text {
-            letter-spacing: 0.05em;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #020617; 
+            color: #f8fafc; 
+            overflow: hidden; /* Mencegah scroll */
         }
+        #reader { 
+            width: 100%; 
+            border-radius: 1.5rem; 
+            overflow: hidden; 
+            background: #000; 
+            border: 2px solid #1e293b; 
+        }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); border: 1px solid rgba(51, 65, 85, 0.2); }
+        .hidden { display: none !important; }
+        .scan-active { box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); border-color: #10b981 !important; }
+        
+        /* Custom scrollbar untuk list */
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center">
+<body class="h-screen flex flex-col p-4 max-w-md mx-auto">
 
-    <!-- LOGIN SECTION -->
-    <div id="login-view" class="w-full max-w-md min-h-screen flex flex-col items-center justify-center p-6">
-        <div class="w-full glass rounded-[3rem] p-10 shadow-2xl border-t-4 border-t-emerald-500 text-center">
-            <div class="w-20 h-20 bg-emerald-500/10 rounded-3xl border border-emerald-500/20 flex items-center justify-center mx-auto mb-6">
-                <svg class="w-10 h-10 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
-            </div>
-            <h1 class="text-3xl font-black mb-2 italic">DO OK SCAN</h1>
-            <p class="text-slate-500 text-sm mb-8">Gunakan akun Usercontrol Anda</p>
-            
-            <form onsubmit="doLogin(event)" class="space-y-4 text-left">
-                <input type="text" id="user" placeholder="Username" class="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-4 px-6 focus:ring-2 focus:ring-emerald-500 outline-none" required>
-                <input type="password" id="pass" placeholder="Password" class="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-4 px-6 focus:ring-2 focus:ring-emerald-500 outline-none" required>
-                <button type="submit" id="btn-login" class="w-full bg-emerald-600 hover:bg-emerald-500 py-5 rounded-2xl font-black text-lg shadow-lg shadow-emerald-900/40 transition-all active:scale-95">MASUK</button>
-            </form>
+    <!-- Header Ringkas -->
+    <header class="flex justify-between items-center mb-3">
+        <div>
+            <h1 class="text-lg font-black italic text-emerald-500">DO OK SCAN</h1>
+            <p class="text-[8px] text-slate-500 font-bold uppercase tracking-widest">HSSI Monitoring Delivery</p>
+        </div>
+        <div class="text-right">
+            <p class="text-[10px] text-slate-400">Total Scan</p>
+            <p id="total" class="text-xl font-black text-emerald-500 leading-none">0</p>
+        </div>
+    </header>
+
+    <!-- Area Scanner (Diperkecil) -->
+    <div class="relative mb-4">
+        <div id="reader"></div>
+        
+        <div id="cam-error" class="hidden absolute inset-0 glass rounded-3xl flex flex-col items-center justify-center p-4 text-center bg-slate-900/95 z-10">
+            <p class="text-xs font-bold text-red-400 mb-2">Akses Kamera Error</p>
+            <button onclick="location.reload()" class="bg-white text-black px-4 py-1.5 rounded-lg text-[10px] font-black">REFRESH</button>
         </div>
 
-        <!-- Footer at Login -->
-        <div class="mt-8 text-center px-4">
-            <p class="text-[10px] font-black text-slate-600 uppercase footer-text">Monitoring Delivery</p>
-            <p class="text-[9px] text-slate-700 font-bold mt-1">Elaborated by SOPARI HSSI0293</p>
-            <p class="text-[9px] text-slate-800 mt-0.5">PT. HANWA STEEL SERVICE INDONESIA © 2026</p>
+        <div id="cam-off" class="bg-slate-900/50 aspect-[4/3] rounded-3xl border-2 border-dashed border-slate-800 flex flex-col items-center justify-center">
+            <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Kamera Standby</p>
+        </div>
+        
+        <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-3/4">
+            <button id="btn-toggle" onclick="toggleScanner()" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-xs shadow-xl border-b-4 border-emerald-800 active:scale-95 transition-transform">MULAI SCAN</button>
         </div>
     </div>
 
-    <!-- SCANNER SECTION -->
-    <div id="scanner-view" class="w-full max-w-md min-h-screen flex flex-col hidden">
-        <header class="p-6 flex justify-between items-center glass border-b border-slate-800 sticky top-0 z-50">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center font-black">OP</div>
-                <div>
-                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Operator</p>
-                    <p id="user-label" class="font-bold text-sm"></p>
-                </div>
-            </div>
-            <button onclick="doLogout()" class="p-2 bg-slate-800 rounded-xl text-slate-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg></button>
-        </header>
-
-        <main class="p-6 flex flex-col gap-6 flex-1">
-            <!-- Camera Interface -->
-            <div class="relative">
-                <div id="reader"></div>
-                
-                <div id="cam-error" class="hidden absolute inset-0 glass rounded-[2rem] flex flex-col items-center justify-center p-8 text-center bg-slate-900/90 z-10">
-                    <div class="p-4 bg-red-500/10 rounded-full mb-4">
-                        <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    </div>
-                    <p class="font-bold text-red-400 mb-2">Akses Kamera Ditolak</p>
-                    <p class="text-xs text-slate-400 mb-6 leading-relaxed">Gunakan Browser Chrome langsung, jangan buka dari WhatsApp.</p>
-                    <button onclick="requestCam()" class="bg-white text-black px-6 py-2 rounded-xl text-xs font-black">COBA LAGI</button>
-                </div>
-
-                <div id="cam-off" class="bg-slate-900/50 aspect-square rounded-[2rem] border-2 border-dashed border-slate-800 flex flex-col items-center justify-center gap-4">
-                    <p class="text-xs font-black text-slate-600 uppercase tracking-widest">Kamera Nonaktif</p>
-                </div>
-                
-                <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 flex gap-2 w-full px-12">
-                    <button id="btn-toggle" onclick="toggleScanner()" class="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black shadow-2xl border-b-4 border-emerald-800 transition transform active:scale-95">MULAI SCAN</button>
-                </div>
-            </div>
-
-            <!-- Dashboard - Simplified -->
-            <div class="mt-12 flex flex-col gap-4">
-                <div class="glass p-8 rounded-[2.5rem] text-center">
-                    <p class="text-[10px] text-slate-500 font-black uppercase mb-1 tracking-[0.2em]">Total Scan</p>
-                    <p id="total" class="text-7xl font-black text-emerald-500 leading-none">0</p>
-                </div>
-                
-                <!-- Preview Card - Only NO LR -->
-                <div id="preview-box" class="glass p-6 rounded-3xl opacity-30 transition-opacity border-l-4 border-l-blue-500">
-                    <p class="text-[10px] text-slate-500 font-black uppercase mb-2 tracking-widest">Item Terakhir (NO LR)</p>
-                    <div id="item-info" class="text-2xl font-black text-slate-200 tracking-tight">Belum ada data...</div>
-                </div>
-            </div>
-            
-            <div id="log-msg" class="text-center text-[10px] font-bold uppercase hidden"></div>
-        </main>
-
-        <footer class="p-6 bg-slate-900/50 border-t border-slate-800 flex flex-col gap-6">
-            <button id="btn-sync" onclick="syncData()" disabled class="w-full bg-blue-600 disabled:opacity-20 py-5 rounded-2xl font-black text-lg border-b-4 border-blue-800 flex items-center justify-center gap-3 transition transform active:scale-95">
-                SINKRON KE DATABASE
-            </button>
-
-            <!-- Custom Footer Text -->
-            <div class="text-center">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest footer-text">Monitoring Delivery</p>
-                <p class="text-[9px] text-slate-500 font-bold mt-1">Elaborated by SOPARI HSSI0293</p>
-                <p class="text-[9px] text-slate-600 mt-0.5">PT. HANWA STEEL SERVICE INDONESIA © 2026</p>
-            </div>
-        </footer>
+    <!-- List Hasil Scan (Scrollable) -->
+    <div class="flex-1 mt-4 overflow-hidden flex flex-col min-h-0">
+        <p class="text-[9px] text-slate-500 font-black uppercase mb-2 px-1 tracking-widest">Data Scan (NO LR)</p>
+        <div id="scan-list" class="glass rounded-2xl flex-1 overflow-y-auto p-3 custom-scroll space-y-2">
+            <!-- Data muncul di sini -->
+            <div id="empty-msg" class="h-full flex items-center justify-center text-slate-600 text-[10px] italic">Belum ada data...</div>
+        </div>
     </div>
+
+    <!-- Footer & Aksi -->
+    <footer class="mt-4 space-y-3">
+        <div id="log-msg" class="text-center text-[9px] font-bold uppercase h-3"></div>
+        
+        <button id="btn-sync" onclick="syncData()" disabled class="w-full bg-blue-600 disabled:opacity-20 py-4 rounded-xl font-black text-sm border-b-4 border-blue-800 flex items-center justify-center gap-2 transition active:scale-95">
+            KIRIM DATA
+        </button>
+
+        <div class="text-center opacity-50">
+            <p class="text-[8px] font-bold text-slate-500 uppercase">SOPARI HSSI0293 • PT. HANWA STEEL SERVICE INDONESIA © 2026</p>
+        </div>
+    </footer>
 
     <audio id="beep" src="https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3"></audio>
 
@@ -121,32 +92,6 @@
         let html5Qr = null;
         let scans = [];
         let active = false;
-
-        function doLogin(e) {
-            e.preventDefault();
-            const u = document.getElementById('user').value;
-            document.getElementById('btn-login').innerText = "MEMPROSES...";
-            
-            fetch(API, { 
-                method: "POST", 
-                mode: "no-cors", 
-                body: JSON.stringify({ action: "login", payload: { username: u } }) 
-            });
-
-            document.getElementById('user-label').innerText = u;
-            document.getElementById('login-view').classList.add('hidden');
-            document.getElementById('scanner-view').classList.remove('hidden');
-        }
-
-        function doLogout() {
-            if(active) toggleScanner();
-            location.reload();
-        }
-
-        async function requestCam() {
-            document.getElementById('cam-error').classList.add('hidden');
-            toggleScanner();
-        }
 
         async function toggleScanner() {
             const btn = document.getElementById('btn-toggle');
@@ -168,7 +113,7 @@
                 
                 html5Qr.start(
                     { facingMode: "environment" },
-                    { fps: 15, qrbox: { width: 250, height: 250 } },
+                    { fps: 20, qrbox: { width: 200, height: 150 } },
                     (text) => {
                         if(scans.some(s => s.raw === text)) return;
                         process(text);
@@ -198,13 +143,23 @@
             };
 
             scans.unshift(item);
+            renderList();
             
             document.getElementById('total').innerText = scans.length;
             document.getElementById('btn-sync').disabled = false;
-            document.getElementById('preview-box').classList.remove('opacity-30');
-            
-            // UI Update: Hanya tampilkan NO LR
-            document.getElementById('item-info').innerText = item.no;
+        }
+
+        function renderList() {
+            const list = document.getElementById('scan-list');
+            const empty = document.getElementById('empty-msg');
+            if(empty) empty.remove();
+
+            list.innerHTML = scans.map(s => `
+                <div class="flex items-center justify-between bg-slate-800/40 p-2 rounded-lg border-l-2 border-emerald-500 animate-in fade-in slide-in-from-left-2 duration-300">
+                    <span class="text-[11px] font-black text-slate-200 tracking-tight">${s.no}</span>
+                    <span class="text-[9px] text-slate-500">${s.tm}</span>
+                </div>
+            `).join('');
         }
 
         async function syncData() {
@@ -212,10 +167,9 @@
             const msg = document.getElementById('log-msg');
             
             btn.disabled = true;
-            btn.innerText = "MENGIRIM DATA...";
-            msg.classList.remove('hidden', 'text-red-500', 'text-emerald-500');
-            msg.classList.add('text-blue-400');
-            msg.innerText = "Sinkronisasi ke Cloud...";
+            btn.innerText = "MENGIRIM...";
+            msg.innerText = "☁️ Menghubungkan...";
+            msg.className = "text-center text-[9px] font-bold uppercase text-blue-400";
 
             const data = scans.map(s => [s.raw, s.no, s.pl, s.tr, s.wt, s.tm, s.dt]);
 
@@ -227,17 +181,16 @@
                 });
 
                 setTimeout(() => {
-                    msg.innerText = "✅ BERHASIL DISIMPAN";
+                    msg.innerText = "✅ DATA BERHASIL TERKIRIM";
                     msg.classList.replace('text-blue-400', 'text-emerald-500');
                     scans = [];
                     document.getElementById('total').innerText = "0";
                     document.getElementById('btn-sync').disabled = true;
-                    btn.innerText = "SINKRON KE DATABASE";
-                    document.getElementById('preview-box').classList.add('opacity-30');
-                    document.getElementById('item-info').innerText = "Selesai!";
-                }, 1500);
+                    btn.innerText = "KIRIM DATA";
+                    document.getElementById('scan-list').innerHTML = '<div id="empty-msg" class="h-full flex items-center justify-center text-slate-600 text-[10px] italic">Terkirim! Siap scan baru.</div>';
+                }, 1000);
             } catch (err) {
-                msg.innerText = "❌ ERROR JARINGAN";
+                msg.innerText = "❌ GAGAL: CEK KONEKSI";
                 msg.classList.replace('text-blue-400', 'text-red-500');
                 btn.disabled = false;
                 btn.innerText = "COBA LAGI";
