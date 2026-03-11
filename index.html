@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DO OK Scanner - Slim</title>
+    <title>DO OK Scanner - Premium</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
@@ -13,22 +13,24 @@
             background-color: #020617; 
             color: #f8fafc; 
             overflow: hidden; 
+            height: 100vh;
         }
+        
         #reader { 
             width: 100%; 
-            border-radius: 1rem; 
+            border-radius: 1.5rem; 
             overflow: hidden; 
             background: #000; 
             border: 2px solid #1e293b; 
+            position: relative;
         }
         
         #reader video {
             object-fit: cover !important;
-            /* Efek gelap pada area video keseluruhan */
-            filter: brightness(0.3);
+            filter: brightness(0.4);
         }
 
-        /* Memastikan kotak pemindaian muncul besar di tengah */
+        /* Area Fokus Scan */
         #reader__scan_region {
             display: flex !important;
             align-items: center !important;
@@ -36,92 +38,105 @@
             z-index: 5;
         }
         
-        /* Membuat area scan (viewfinder) kembali terang */
         #reader__scan_region canvas {
-            filter: brightness(3.3); /* Menetralkan filter video hanya di area scan */
-            border-radius: 8px;
+            filter: brightness(2.5);
+            border-radius: 12px;
         }
 
-        /* Mengatur tampilan garis kotak pemindaian */
         #reader__scan_region svg {
             stroke: #10b981 !important;
-            stroke-width: 4px !important;
-            filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.8));
+            stroke-width: 5px !important;
+            filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.9));
         }
 
-        /* Menghilangkan elemen teks bawaan library */
         #reader__dashboard_section_csr span { display: none !important; }
 
-        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); border: 1px solid rgba(51, 65, 85, 0.2); }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.3); }
         .hidden { display: none !important; }
-        .scan-active { box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); border-color: #10b981 !important; }
         
+        /* State Tombol yang Jelas */
+        .btn-primary {
+            background: #059669;
+            border-bottom: 4px solid #064e3b;
+            box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4);
+        }
+        .btn-danger {
+            background: #dc2626;
+            border-bottom: 4px solid #7f1d1d;
+            box-shadow: 0 10px 25px -5px rgba(220, 38, 38, 0.4);
+        }
+        .btn-sync {
+            background: #2563eb;
+            border-bottom: 4px solid #1e3a8a;
+            box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.3);
+        }
+
         .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
-<body class="h-screen flex flex-col p-4 max-w-md mx-auto">
+<body class="flex flex-col p-5 max-w-md mx-auto">
 
-    <!-- Header -->
-    <header class="flex justify-between items-end mb-2">
+    <!-- Header Section -->
+    <header class="flex justify-between items-center mb-4">
         <div>
-            <h1 class="text-xl font-black italic text-emerald-500 leading-none tracking-tighter">DO OK SCAN</h1>
-            <p class="text-[8px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">HSSI Monitoring Delivery</p>
+            <h1 class="text-2xl font-black italic text-emerald-500 tracking-tighter leading-none">DO OK SCAN</h1>
+            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1">HSSI Monitoring Delivery</p>
         </div>
-        <div class="text-right bg-emerald-500/10 px-3 py-1 rounded-xl border border-emerald-500/20">
-            <p class="text-[9px] text-slate-400 font-bold uppercase">Total Scan</p>
-            <p id="total" class="text-3xl font-black text-emerald-500 leading-none">0</p>
+        <div class="bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-2xl text-right">
+            <p class="text-[8px] text-slate-400 font-black uppercase">Total</p>
+            <p id="total" class="text-2xl font-black text-emerald-500 leading-none">0</p>
         </div>
     </header>
 
-    <!-- Area Scanner -->
-    <div class="relative mb-8">
-        <div id="reader" class="aspect-square w-full"></div>
+    <!-- Main Scanner Interface -->
+    <div class="relative flex-none mb-10">
+        <div id="reader" class="aspect-square w-full shadow-2xl"></div>
         
-        <!-- Overlay Gelap di Luar Area Scan (Hanya aktif saat scan jalan) -->
-        <div id="scanner-overlay" class="hidden absolute inset-0 pointer-events-none border-[60px] border-black/70 z-10 rounded-2xl"></div>
+        <!-- Overlay Gelap (Masking) -->
+        <div id="scanner-overlay" class="hidden absolute inset-0 pointer-events-none border-[50px] border-black/80 z-10 rounded-[1.5rem]"></div>
 
-        <div id="cam-error" class="hidden absolute inset-0 glass rounded-2xl flex flex-col items-center justify-center p-4 text-center bg-slate-900/95 z-20">
-            <p class="text-xs font-bold text-red-400 mb-2">Akses Kamera Error</p>
-            <button onclick="location.reload()" class="bg-white text-black px-4 py-1.5 rounded-lg text-[10px] font-black uppercase">Refresh Halaman</button>
+        <!-- Camera Standby / Off View -->
+        <div id="cam-off" class="absolute inset-0 bg-slate-900/60 flex flex-col items-center justify-center z-10 rounded-[1.5rem] border-2 border-dashed border-slate-700">
+            <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-3">
+                <svg class="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+            </div>
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Kamera Siap Digunakan</p>
         </div>
 
-        <div id="cam-off" class="bg-slate-900/50 aspect-square rounded-2xl border-2 border-dashed border-slate-800 flex flex-col items-center justify-center z-10">
-            <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Kamera Siap</p>
-        </div>
-        
-        <!-- Tombol Kontrol Scanner -->
-        <div class="absolute -bottom-5 left-1/2 -translate-x-1/2 w-4/6 z-30">
-            <button id="btn-toggle" onclick="toggleScanner()" class="w-full py-3 bg-emerald-600 text-white rounded-2xl font-black text-[12px] shadow-2xl border-b-4 border-emerald-800 active:scale-95 transition-all uppercase tracking-wider">MULAI SCAN</button>
+        <!-- Tombol Utama (Position Absolute & High Z-Index) -->
+        <div class="absolute -bottom-6 left-0 right-0 flex justify-center z-50 px-10">
+            <button id="btn-toggle" onclick="toggleScanner()" class="w-full py-4 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all active:scale-90 btn-primary">
+                MULAI SCAN
+            </button>
         </div>
     </div>
 
-    <!-- Area Data Scan -->
-    <div class="flex-none h-16 mt-2 overflow-hidden flex flex-col">
-        <p class="text-[9px] text-slate-500 font-black uppercase mb-1 px-1 tracking-widest flex justify-between">
-            <span>Data Scan (NO LR)</span>
-        </p>
-        <div id="scan-list" class="glass rounded-xl flex-1 overflow-y-auto p-2 custom-scroll space-y-1">
-            <div id="empty-msg" class="h-full flex items-center justify-center text-slate-700 text-[8px] font-bold uppercase">Belum ada data</div>
+    <!-- Data List Section -->
+    <div class="flex-1 flex flex-col min-h-0">
+        <div class="flex justify-between items-center mb-2 px-1">
+            <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Daftar Scan (NO LR)</p>
+            <p class="text-[8px] text-slate-600 font-bold uppercase">Terbaru di Atas</p>
+        </div>
+        
+        <div id="scan-list" class="glass rounded-2xl flex-1 overflow-y-auto p-3 custom-scroll space-y-2">
+            <div id="empty-msg" class="h-full flex items-center justify-center">
+                <p class="text-slate-700 text-[10px] font-bold uppercase tracking-tighter">Belum ada data scan...</p>
+            </div>
         </div>
     </div>
 
-    <!-- Spacer -->
-    <div class="flex-1"></div>
-
-    <!-- Footer Area -->
-    <footer class="pb-4 space-y-3">
-        <div id="log-msg" class="text-center text-[9px] font-bold uppercase h-3"></div>
+    <!-- Footer Action -->
+    <footer class="mt-6 space-y-4">
+        <div id="log-msg" class="text-center text-[10px] font-bold uppercase h-4"></div>
         
-        <button id="btn-sync" onclick="syncData()" disabled class="w-full bg-blue-600 disabled:opacity-20 py-4 rounded-2xl font-black text-xs border-b-4 border-blue-800 flex items-center justify-center gap-2 transition active:scale-95 shadow-xl shadow-blue-900/20 uppercase tracking-widest">
-            KIRIM DATA
+        <button id="btn-sync" onclick="syncData()" disabled class="w-full py-4 rounded-2xl font-black text-sm text-white uppercase tracking-widest transition-all active:scale-95 btn-sync disabled:opacity-20 disabled:grayscale">
+            KIRIM KE DATABASE
         </button>
 
-        <div class="text-center">
-            <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] leading-tight">Monitoring Delivery</p>
-            <p class="text-[8px] text-slate-500 font-bold mt-1">Elaborated by SOPARI HSSI0293</p>
-            <p class="text-[8px] text-slate-600 mt-0.5 font-bold uppercase tracking-tighter">PT. HANWA STEEL SERVICE INDONESIA © 2026</p>
+        <div class="text-center opacity-40">
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em]">HSSI Monitoring Delivery</p>
+            <p class="text-[8px] text-slate-600 font-bold mt-1 uppercase">PT. HANWA STEEL SERVICE INDONESIA © 2026</p>
         </div>
     </footer>
 
@@ -136,26 +151,20 @@
         async function toggleScanner() {
             const btn = document.getElementById('btn-toggle');
             const off = document.getElementById('cam-off');
-            const reader = document.getElementById('reader');
             const overlay = document.getElementById('scanner-overlay');
 
             if (active) {
                 await html5Qr.stop();
                 active = false;
                 btn.innerText = "MULAI SCAN";
-                btn.classList.replace('bg-red-600', 'bg-emerald-600');
-                btn.classList.replace('border-red-800', 'border-emerald-800');
+                btn.className = "w-full py-4 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all active:scale-90 btn-primary";
                 off.classList.remove('hidden');
                 overlay.classList.add('hidden');
-                reader.classList.remove('scan-active');
             } else {
                 if (!html5Qr) html5Qr = new Html5Qrcode("reader");
                 off.classList.add('hidden');
                 overlay.classList.remove('hidden');
-                document.getElementById('cam-error').classList.add('hidden');
                 
-                const qrSize = Math.min(window.innerWidth * 0.7, 250);
-
                 html5Qr.start(
                     { facingMode: "environment" },
                     { 
@@ -170,13 +179,11 @@
                 ).then(() => {
                     active = true;
                     btn.innerText = "STOP SCAN";
-                    btn.classList.replace('bg-emerald-600', 'bg-red-600');
-                    btn.classList.replace('border-emerald-800', 'border-red-800');
-                    reader.classList.add('scan-active');
+                    btn.className = "w-full py-4 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all active:scale-90 btn-danger";
                 }).catch(err => {
-                    document.getElementById('cam-error').classList.remove('hidden');
                     off.classList.remove('hidden');
                     overlay.classList.add('hidden');
+                    console.error(err);
                 });
             }
         }
@@ -189,7 +196,7 @@
             const date = `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}/${d.getFullYear()}`;
 
             const item = {
-                raw: text, no: p[0]||'ERR', pl: p[1]||'', tr: p[2]||'', wt: p[3]||'', tm: time, dt: date
+                raw: text, no: p[0]||'ERROR', pl: p[1]||'', tr: p[2]||'', wt: p[3]||'', tm: time, dt: date
             };
 
             scans.unshift(item);
@@ -201,13 +208,10 @@
 
         function renderList() {
             const list = document.getElementById('scan-list');
-            const empty = document.getElementById('empty-msg');
-            if(empty) empty.remove();
-
             list.innerHTML = scans.map(s => `
-                <div class="flex items-center justify-between bg-slate-800/50 p-1.5 rounded-lg border-l-4 border-emerald-500 animate-in fade-in slide-in-from-left-2 duration-300">
-                    <span class="text-[10px] font-black text-slate-100">${s.no}</span>
-                    <span class="text-[8px] font-bold text-slate-500 bg-black/40 px-1.5 py-0.5 rounded-md">${s.tm}</span>
+                <div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border-l-4 border-emerald-500 shadow-sm">
+                    <span class="text-xs font-black text-slate-100">${s.no}</span>
+                    <span class="text-[9px] font-bold text-slate-400 bg-slate-900/80 px-2 py-1 rounded-lg">${s.tm}</span>
                 </div>
             `).join('');
         }
@@ -217,9 +221,9 @@
             const msg = document.getElementById('log-msg');
             
             btn.disabled = true;
-            btn.innerText = "PROSES KIRIM...";
+            btn.innerText = "MENGIRIM...";
             msg.innerText = "☁️ MENGHUBUNGKAN CLOUD...";
-            msg.className = "text-center text-[9px] font-bold uppercase text-blue-400";
+            msg.className = "text-center text-[10px] font-black uppercase text-blue-400";
 
             const data = scans.map(s => [s.raw, s.no, s.pl, s.tr, s.wt, s.tm, s.dt]);
 
@@ -231,17 +235,17 @@
                 });
 
                 setTimeout(() => {
-                    msg.innerText = "✅ SUKSES TERKIRIM";
-                    msg.classList.replace('text-blue-400', 'text-emerald-500');
+                    msg.innerText = "✅ DATA BERHASIL DISIMPAN";
+                    msg.className = "text-center text-[10px] font-black uppercase text-emerald-500";
                     scans = [];
                     document.getElementById('total').innerText = "0";
                     document.getElementById('btn-sync').disabled = true;
-                    btn.innerText = "KIRIM DATA";
-                    document.getElementById('scan-list').innerHTML = '<div id="empty-msg" class="h-full flex items-center justify-center text-emerald-500/50 text-[9px] italic font-bold">DATA BERHASIL DISIMPAN</div>';
+                    btn.innerText = "KIRIM KE DATABASE";
+                    document.getElementById('scan-list').innerHTML = '<div class="h-full flex items-center justify-center text-emerald-500/30 text-[10px] font-black italic">DATABASE UPDATED</div>';
                 }, 1000);
             } catch (err) {
-                msg.innerText = "❌ GAGAL: CEK SINYAL";
-                msg.classList.replace('text-blue-400', 'text-red-500');
+                msg.innerText = "❌ ERROR JARINGAN";
+                msg.className = "text-center text-[10px] font-black uppercase text-red-500";
                 btn.disabled = false;
                 btn.innerText = "COBA LAGI";
             }
