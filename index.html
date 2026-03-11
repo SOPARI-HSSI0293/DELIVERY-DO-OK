@@ -12,7 +12,7 @@
             font-family: 'Inter', sans-serif; 
             background-color: #020617; 
             color: #f8fafc; 
-            overflow: hidden; /* Mencegah scroll */
+            overflow: hidden; 
         }
         #reader { 
             width: 100%; 
@@ -21,22 +21,28 @@
             background: #000; 
             border: 2px solid #1e293b; 
         }
-        /* Menyesuaikan tampilan internal html5-qrcode agar lebih bersih */
+        
         #reader video {
             object-fit: cover !important;
         }
-        /* Memaksa area viewfinder html5-qrcode berada di tengah */
+
+        /* PERBAIKAN: Memastikan kotak pemindaian (viewfinder) muncul di tengah */
         #reader__scan_region {
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
+        }
+        
+        /* Memberikan border putih pada kotak pemindaian agar terlihat jelas */
+        #reader__scan_region svg {
+            stroke: #ffffff !important;
+            stroke-width: 2px !important;
         }
 
         .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); border: 1px solid rgba(51, 65, 85, 0.2); }
         .hidden { display: none !important; }
         .scan-active { box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); border-color: #10b981 !important; }
         
-        /* Custom scrollbar untuk list */
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
@@ -44,7 +50,7 @@
 </head>
 <body class="h-screen flex flex-col p-4 max-w-md mx-auto">
 
-    <!-- Header Ringkas -->
+    <!-- Header -->
     <header class="flex justify-between items-end mb-3">
         <div>
             <h1 class="text-xl font-black italic text-emerald-500 leading-none">DO OK SCAN</h1>
@@ -57,7 +63,7 @@
     </header>
 
     <!-- Area Scanner -->
-    <div class="relative mb-4">
+    <div class="relative mb-6">
         <div id="reader" class="aspect-[16/10]"></div>
         
         <div id="cam-error" class="hidden absolute inset-0 glass rounded-3xl flex flex-col items-center justify-center p-4 text-center bg-slate-900/95 z-10">
@@ -69,38 +75,38 @@
             <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Kamera Standby</p>
         </div>
         
+        <!-- Button Toggle dinaikkan sedikit -->
         <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-3/5 z-20">
             <button id="btn-toggle" onclick="toggleScanner()" class="w-full py-2.5 bg-emerald-600 text-white rounded-xl font-black text-[11px] shadow-xl border-b-4 border-emerald-800 active:scale-95 transition-transform uppercase">MULAI SCAN</button>
         </div>
     </div>
 
-    <!-- List Hasil Scan (Tinggi Diperkecil Setengah) -->
-    <div class="flex-none h-24 mt-4 overflow-hidden flex flex-col min-h-0">
-        <p class="text-[9px] text-slate-500 font-black uppercase mb-2 px-1 tracking-widest flex justify-between">
+    <!-- Area Data Scan -->
+    <div class="flex-none h-20 mt-2 overflow-hidden flex flex-col">
+        <p class="text-[9px] text-slate-500 font-black uppercase mb-1 px-1 tracking-widest flex justify-between">
             <span>Data Scan (NO LR)</span>
-            <span class="opacity-50 italic">Terbaru di atas</span>
+            <span class="opacity-50 italic text-[8px]">Baru: Atas</span>
         </p>
-        <div id="scan-list" class="glass rounded-2xl flex-1 overflow-y-auto p-2 custom-scroll space-y-1.5">
-            <!-- Data muncul di sini -->
-            <div id="empty-msg" class="h-full flex items-center justify-center text-slate-600 text-[10px] italic">Belum ada data...</div>
+        <div id="scan-list" class="glass rounded-2xl flex-1 overflow-y-auto p-2 custom-scroll space-y-1">
+            <div id="empty-msg" class="h-full flex items-center justify-center text-slate-600 text-[9px] italic uppercase font-bold tracking-tight">Menunggu Data...</div>
         </div>
     </div>
 
-    <!-- Spacer untuk mendorong footer ke bawah -->
+    <!-- Spacer dinamis -->
     <div class="flex-1"></div>
 
-    <!-- Footer & Aksi -->
-    <footer class="mt-4 space-y-3">
+    <!-- Footer Area (Button dipindah lebih ke atas agar footer text terlihat) -->
+    <footer class="pb-2 space-y-3">
         <div id="log-msg" class="text-center text-[9px] font-bold uppercase h-3"></div>
         
-        <button id="btn-sync" onclick="syncData()" disabled class="w-full bg-blue-600 disabled:opacity-20 py-4 rounded-xl font-black text-sm border-b-4 border-blue-800 flex items-center justify-center gap-2 transition active:scale-95 shadow-lg shadow-blue-900/20">
+        <button id="btn-sync" onclick="syncData()" disabled class="w-full bg-blue-600 disabled:opacity-20 py-3 rounded-xl font-black text-xs border-b-4 border-blue-800 flex items-center justify-center gap-2 transition active:scale-95 shadow-lg shadow-blue-900/20">
             KIRIM DATA
         </button>
 
         <div class="text-center">
-            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Monitoring Delivery</p>
-            <p class="text-[8px] text-slate-500 font-bold mt-1">Elaborated by SOPARI HSSI0293</p>
-            <p class="text-[8px] text-slate-600 mt-0.5 font-bold">PT. HANWA STEEL SERVICE INDONESIA © 2026</p>
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-tight">Monitoring Delivery</p>
+            <p class="text-[8px] text-slate-500 font-bold mt-0.5">Elaborated by SOPARI HSSI0293</p>
+            <p class="text-[8px] text-slate-600 mt-0.5 font-bold opacity-80 uppercase">PT. HANWA STEEL SERVICE INDONESIA © 2026</p>
         </div>
     </footer>
 
@@ -130,12 +136,12 @@
                 off.classList.add('hidden');
                 document.getElementById('cam-error').classList.add('hidden');
                 
-                // qrbox diletakkan di tengah dengan penyesuaian CSS di atas
+                // qrbox diatur 200x150 dan diposisikan tengah via CSS
                 html5Qr.start(
                     { facingMode: "environment" },
                     { 
                         fps: 20, 
-                        qrbox: { width: 180, height: 120 },
+                        qrbox: { width: 200, height: 150 },
                         aspectRatio: 1.6
                     },
                     (text) => {
@@ -179,9 +185,9 @@
             if(empty) empty.remove();
 
             list.innerHTML = scans.map(s => `
-                <div class="flex items-center justify-between bg-slate-800/40 p-2 rounded-xl border-l-4 border-emerald-500 animate-in fade-in slide-in-from-left-2 duration-300">
-                    <span class="text-[11px] font-black text-slate-100 tracking-tight">${s.no}</span>
-                    <span class="text-[9px] font-bold text-slate-500 bg-slate-900/50 px-2 py-0.5 rounded-md">${s.tm}</span>
+                <div class="flex items-center justify-between bg-slate-800/40 p-1.5 rounded-lg border-l-4 border-emerald-500 animate-in fade-in slide-in-from-left-2 duration-300">
+                    <span class="text-[10px] font-black text-slate-100 tracking-tight">${s.no}</span>
+                    <span class="text-[8px] font-bold text-slate-500 bg-slate-900/50 px-1.5 py-0.5 rounded-md">${s.tm}</span>
                 </div>
             `).join('');
         }
@@ -192,7 +198,7 @@
             
             btn.disabled = true;
             btn.innerText = "MENGIRIM...";
-            msg.innerText = "☁️ Menghubungkan...";
+            msg.innerText = "☁️ SINKRONISASI...";
             msg.className = "text-center text-[9px] font-bold uppercase text-blue-400";
 
             const data = scans.map(s => [s.raw, s.no, s.pl, s.tr, s.wt, s.tm, s.dt]);
@@ -211,7 +217,7 @@
                     document.getElementById('total').innerText = "0";
                     document.getElementById('btn-sync').disabled = true;
                     btn.innerText = "KIRIM DATA";
-                    document.getElementById('scan-list').innerHTML = '<div id="empty-msg" class="h-full flex items-center justify-center text-emerald-500/50 text-[10px] italic font-bold">Berhasil Terkirim!</div>';
+                    document.getElementById('scan-list').innerHTML = '<div id="empty-msg" class="h-full flex items-center justify-center text-emerald-500/50 text-[9px] italic font-bold">DATA TERKIRIM!</div>';
                 }, 1000);
             } catch (err) {
                 msg.innerText = "❌ GAGAL: CEK KONEKSI";
