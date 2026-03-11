@@ -21,6 +21,10 @@
             background: #000; 
             border: 2px solid #1e293b; 
         }
+        /* Menyesuaikan tampilan internal html5-qrcode agar lebih bersih */
+        #reader video {
+            object-fit: cover !important;
+        }
         .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); border: 1px solid rgba(51, 65, 85, 0.2); }
         .hidden { display: none !important; }
         .scan-active { box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); border-color: #10b981 !important; }
@@ -34,39 +38,43 @@
 <body class="h-screen flex flex-col p-4 max-w-md mx-auto">
 
     <!-- Header Ringkas -->
-    <header class="flex justify-between items-center mb-3">
+    <header class="flex justify-between items-end mb-3">
         <div>
-            <h1 class="text-lg font-black italic text-emerald-500">DO OK SCAN</h1>
-            <p class="text-[8px] text-slate-500 font-bold uppercase tracking-widest">HSSI Monitoring Delivery</p>
+            <h1 class="text-xl font-black italic text-emerald-500 leading-none">DO OK SCAN</h1>
+            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">HSSI Monitoring Delivery</p>
         </div>
-        <div class="text-right">
-            <p class="text-[10px] text-slate-400">Total Scan</p>
-            <p id="total" class="text-xl font-black text-emerald-500 leading-none">0</p>
+        <div class="text-right bg-emerald-500/10 px-3 py-1 rounded-xl border border-emerald-500/20">
+            <p class="text-[10px] text-slate-400 font-bold uppercase">Total Scan</p>
+            <p id="total" class="text-3xl font-black text-emerald-500 leading-none">0</p>
         </div>
     </header>
 
-    <!-- Area Scanner (Diperkecil) -->
+    <!-- Area Scanner (Area kamera dipersempit agar lebih simpel) -->
     <div class="relative mb-4">
-        <div id="reader"></div>
+        <div id="reader" class="aspect-[16/10]"></div>
         
         <div id="cam-error" class="hidden absolute inset-0 glass rounded-3xl flex flex-col items-center justify-center p-4 text-center bg-slate-900/95 z-10">
             <p class="text-xs font-bold text-red-400 mb-2">Akses Kamera Error</p>
             <button onclick="location.reload()" class="bg-white text-black px-4 py-1.5 rounded-lg text-[10px] font-black">REFRESH</button>
         </div>
 
-        <div id="cam-off" class="bg-slate-900/50 aspect-[4/3] rounded-3xl border-2 border-dashed border-slate-800 flex flex-col items-center justify-center">
+        <div id="cam-off" class="bg-slate-900/50 aspect-[16/10] rounded-3xl border-2 border-dashed border-slate-800 flex flex-col items-center justify-center">
             <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest">Kamera Standby</p>
         </div>
         
-        <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-3/4">
-            <button id="btn-toggle" onclick="toggleScanner()" class="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-xs shadow-xl border-b-4 border-emerald-800 active:scale-95 transition-transform">MULAI SCAN</button>
+        <!-- Tombol diletakkan sedikit naik agar tidak menabrak list -->
+        <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-3/5">
+            <button id="btn-toggle" onclick="toggleScanner()" class="w-full py-2.5 bg-emerald-600 text-white rounded-xl font-black text-[11px] shadow-xl border-b-4 border-emerald-800 active:scale-95 transition-transform uppercase">MULAI SCAN</button>
         </div>
     </div>
 
     <!-- List Hasil Scan (Scrollable) -->
     <div class="flex-1 mt-4 overflow-hidden flex flex-col min-h-0">
-        <p class="text-[9px] text-slate-500 font-black uppercase mb-2 px-1 tracking-widest">Data Scan (NO LR)</p>
-        <div id="scan-list" class="glass rounded-2xl flex-1 overflow-y-auto p-3 custom-scroll space-y-2">
+        <p class="text-[9px] text-slate-500 font-black uppercase mb-2 px-1 tracking-widest flex justify-between">
+            <span>Data Scan (NO LR)</span>
+            <span class="opacity-50 italic">Terbaru di atas</span>
+        </p>
+        <div id="scan-list" class="glass rounded-2xl flex-1 overflow-y-auto p-2 custom-scroll space-y-1.5">
             <!-- Data muncul di sini -->
             <div id="empty-msg" class="h-full flex items-center justify-center text-slate-600 text-[10px] italic">Belum ada data...</div>
         </div>
@@ -76,12 +84,12 @@
     <footer class="mt-4 space-y-3">
         <div id="log-msg" class="text-center text-[9px] font-bold uppercase h-3"></div>
         
-        <button id="btn-sync" onclick="syncData()" disabled class="w-full bg-blue-600 disabled:opacity-20 py-4 rounded-xl font-black text-sm border-b-4 border-blue-800 flex items-center justify-center gap-2 transition active:scale-95">
+        <button id="btn-sync" onclick="syncData()" disabled class="w-full bg-blue-600 disabled:opacity-20 py-4 rounded-xl font-black text-sm border-b-4 border-blue-800 flex items-center justify-center gap-2 transition active:scale-95 shadow-lg shadow-blue-900/20">
             KIRIM DATA
         </button>
 
-        <div class="text-center opacity-50">
-            <p class="text-[8px] font-bold text-slate-500 uppercase">SOPARI HSSI0293 • PT. HANWA STEEL SERVICE INDONESIA © 2026</p>
+        <div class="text-center opacity-40">
+            <p class="text-[7px] font-bold text-slate-500 uppercase tracking-tighter">SOPARI HSSI0293 • PT. HANWA STEEL SERVICE INDONESIA © 2026</p>
         </div>
     </footer>
 
@@ -111,9 +119,14 @@
                 off.classList.add('hidden');
                 document.getElementById('cam-error').classList.add('hidden');
                 
+                // qrbox diperkecil agar lebih fokus (simpel)
                 html5Qr.start(
                     { facingMode: "environment" },
-                    { fps: 20, qrbox: { width: 200, height: 150 } },
+                    { 
+                        fps: 20, 
+                        qrbox: { width: 180, height: 120 },
+                        aspectRatio: 1.6
+                    },
                     (text) => {
                         if(scans.some(s => s.raw === text)) return;
                         process(text);
@@ -155,9 +168,9 @@
             if(empty) empty.remove();
 
             list.innerHTML = scans.map(s => `
-                <div class="flex items-center justify-between bg-slate-800/40 p-2 rounded-lg border-l-2 border-emerald-500 animate-in fade-in slide-in-from-left-2 duration-300">
-                    <span class="text-[11px] font-black text-slate-200 tracking-tight">${s.no}</span>
-                    <span class="text-[9px] text-slate-500">${s.tm}</span>
+                <div class="flex items-center justify-between bg-slate-800/40 p-2.5 rounded-xl border-l-4 border-emerald-500 animate-in fade-in slide-in-from-left-2 duration-300">
+                    <span class="text-[12px] font-black text-slate-100 tracking-tight">${s.no}</span>
+                    <span class="text-[9px] font-bold text-slate-500 bg-slate-900/50 px-2 py-0.5 rounded-md">${s.tm}</span>
                 </div>
             `).join('');
         }
@@ -187,7 +200,7 @@
                     document.getElementById('total').innerText = "0";
                     document.getElementById('btn-sync').disabled = true;
                     btn.innerText = "KIRIM DATA";
-                    document.getElementById('scan-list').innerHTML = '<div id="empty-msg" class="h-full flex items-center justify-center text-slate-600 text-[10px] italic">Terkirim! Siap scan baru.</div>';
+                    document.getElementById('scan-list').innerHTML = '<div id="empty-msg" class="h-full flex items-center justify-center text-emerald-500/50 text-[10px] italic font-bold">Berhasil Terkirim!</div>';
                 }, 1000);
             } catch (err) {
                 msg.innerText = "❌ GAGAL: CEK KONEKSI";
