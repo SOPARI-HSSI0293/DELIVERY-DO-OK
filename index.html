@@ -104,7 +104,7 @@
             <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Kamera Siap Digunakan</p>
         </div>
 
-        <!-- Tombol Utama (Position Absolute & High Z-Index) -->
+        <!-- Tombol Utama -->
         <div class="absolute -bottom-6 left-0 right-0 flex justify-center z-50 px-10">
             <button id="btn-toggle" onclick="toggleScanner()" class="w-full py-4 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all active:scale-90 btn-primary">
                 MULAI SCAN
@@ -188,16 +188,35 @@
             }
         }
 
+        /**
+         * Perbaikan Logika:
+         * Menyesuaikan format Tanggal (NOW) dan Waktu (TIMENOW)
+         * Tanggal: YYYY-MM-DD
+         * Waktu: HH:mm:ss
+         */
         function process(text) {
             document.getElementById('beep').play().catch(()=>{});
             const p = text.split(';');
             const d = new Date();
-            const time = d.toLocaleTimeString('en-GB', { hour12: false });
-            // Format: M/D/YYYY (Contoh: 3/12/2026)
-            const date = `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+            
+            // TIMENOW() Format: HH:mm:ss
+            const timeNow = d.getHours().toString().padStart(2, '0') + ":" + 
+                            d.getMinutes().toString().padStart(2, '0') + ":" + 
+                            d.getSeconds().toString().padStart(2, '0');
+
+            // NOW() Format (Date): YYYY-MM-DD (ISO Format compatible with Sheets/Databases)
+            const dateNow = d.getFullYear() + "-" + 
+                            (d.getMonth() + 1).toString().padStart(2, '0') + "-" + 
+                            d.getDate().toString().padStart(2, '0');
 
             const item = {
-                raw: text, no: p[0]||'ERROR', pl: p[1]||'', tr: p[2]||'', wt: p[3]||'', tm: time, dt: date
+                raw: text, 
+                no: p[0]||'ERROR', 
+                pl: p[1]||'', 
+                tr: p[2]||'', 
+                wt: p[3]||'', 
+                tm: timeNow, // TIME DO OK (initial value TIMENOW)
+                dt: dateNow  // TANGGAL (initial value NOW)
             };
 
             scans.unshift(item);
@@ -226,6 +245,8 @@
             msg.innerText = "☁️ MENGHUBUNGKAN CLOUD...";
             msg.className = "text-center text-[10px] font-black uppercase text-blue-400";
 
+            // Pastikan urutan payload sesuai dengan kolom di database
+            // Urutan: RAW, NO LR, PL, TR, WT, TIME DO OK (tm), TANGGAL (dt)
             const data = scans.map(s => [s.raw, s.no, s.pl, s.tr, s.wt, s.tm, s.dt]);
 
             try {
