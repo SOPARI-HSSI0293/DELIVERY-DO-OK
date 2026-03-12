@@ -190,9 +190,8 @@
 
         /**
          * Perbaikan Logika:
-         * Menyesuaikan format Tanggal (NOW) dan Waktu (TIMENOW)
-         * Tanggal: YYYY-MM-DD
-         * Waktu: HH:mm:ss
+         * Menyesuaikan format Tanggal (NOW) agar sesuai dengan AppSheet (M/D/YYYY)
+         * Contoh: 3/12/2026
          */
         function process(text) {
             document.getElementById('beep').play().catch(()=>{});
@@ -204,10 +203,9 @@
                             d.getMinutes().toString().padStart(2, '0') + ":" + 
                             d.getSeconds().toString().padStart(2, '0');
 
-            // NOW() Format (Date): YYYY-MM-DD (ISO Format compatible with Sheets/Databases)
-            const dateNow = d.getFullYear() + "-" + 
-                            (d.getMonth() + 1).toString().padStart(2, '0') + "-" + 
-                            d.getDate().toString().padStart(2, '0');
+            // Format Tanggal sesuai Database/AppSheet: M/D/YYYY (Bulan/Hari/Tahun)
+            // Hasil: 3/12/2026
+            const dateNow = `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
 
             const item = {
                 raw: text, 
@@ -215,8 +213,8 @@
                 pl: p[1]||'', 
                 tr: p[2]||'', 
                 wt: p[3]||'', 
-                tm: timeNow, // TIME DO OK (initial value TIMENOW)
-                dt: dateNow  // TANGGAL (initial value NOW)
+                tm: timeNow, 
+                dt: dateNow  
             };
 
             scans.unshift(item);
@@ -245,8 +243,6 @@
             msg.innerText = "☁️ MENGHUBUNGKAN CLOUD...";
             msg.className = "text-center text-[10px] font-black uppercase text-blue-400";
 
-            // Pastikan urutan payload sesuai dengan kolom di database
-            // Urutan: RAW, NO LR, PL, TR, WT, TIME DO OK (tm), TANGGAL (dt)
             const data = scans.map(s => [s.raw, s.no, s.pl, s.tr, s.wt, s.tm, s.dt]);
 
             try {
